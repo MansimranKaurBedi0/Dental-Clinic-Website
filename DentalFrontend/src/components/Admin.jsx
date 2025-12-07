@@ -3,16 +3,18 @@ import { AdminCards } from "./AdminCards";
 
 export function Admin() {
   const [appointment, setAppointment] = useState([]);
+
   async function handleData() {
-    const res = await fetch("http://localhost:3000/user/view", {
+    const res = await fetch("http://localhost:3000/appointment/view", {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
     });
+
     const parsed = await res.json();
     setAppointment(parsed);
   }
+
   useEffect(() => {
     handleData();
   }, []);
@@ -31,8 +33,8 @@ export function Admin() {
         {appointment.map((item) => {
           return (
             <AdminCards
-              _id={item._id}
               key={item._id}
+              _id={item._id}
               name={item.name}
               email={item.email}
               phone={item.phone}
@@ -40,7 +42,7 @@ export function Admin() {
               time={item.time}
               message={item.message}
               status={item.status}
-            ></AdminCards>
+            />
           );
         })}
       </div>

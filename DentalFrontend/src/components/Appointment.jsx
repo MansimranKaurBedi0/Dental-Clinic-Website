@@ -35,13 +35,13 @@ export function Appointment() {
       time,
       message,
     };
-    const data = await fetch("http://localhost:3000/user/appointment", {
+    const data = await fetch("http://localhost:3000/appointment/appointment", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      credentials: "include", // ⭐ cookie send hogi!
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(obj),
     });
+
     const parsed = await data.json();
     if (data.ok) {
       alert("Appointment sent sucessfully");

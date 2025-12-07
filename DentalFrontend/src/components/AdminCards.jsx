@@ -1,23 +1,29 @@
 export function AdminCards(props) {
   //Handle Accept
   async function handleAccept() {
-    const res = await fetch(`http://localhost:3000/user/accept/${props._id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const res = await fetch(
+      `http://localhost:3000/appointment/accept/${props._id}`,
+      {
+        method: "PUT",
+        credentials: "include", // ⭐ IMPORTANT
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+
     if (res.ok) alert("Appointment Accepted ✅");
   }
 
   //Handle Decline
   async function handleDecline() {
-    const res = await fetch(`http://localhost:3000/user/decline/${props._id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const res = await fetch(
+      `http://localhost:3000/appointment/decline/${props._id}`,
+      {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+
     if (res.ok) alert("Appointment Decline ✅");
   }
   return (
