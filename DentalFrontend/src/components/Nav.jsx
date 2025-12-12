@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 export function Nav() {
   const [loggedIn, setLoggedIn] = useState(false);
+  const [user, setUser] = useState(null); // store user data
 
   // Check login status on page load
   async function checkLogin() {
@@ -10,7 +11,14 @@ export function Nav() {
       credentials: "include",
     });
     const data = await res.json();
+
     setLoggedIn(data.loggedIn);
+
+    if (data.loggedIn) {
+      setUser(data.user); // store full user {id, name, role}
+    } else {
+      setUser(null);
+    }
   }
 
   useEffect(() => {
@@ -19,26 +27,22 @@ export function Nav() {
 
   // Logout handler
   async function handleLogout() {
-    const res = await fetch("http://localhost:3000/user/logout", {
+    await fetch("http://localhost:3000/user/logout", {
       method: "POST",
       credentials: "include",
     });
 
-    const data = await res.json();
-    alert(data.msg);
     setLoggedIn(false);
+    setUser(null);
+    window.location.href = "/"; // reload UI
   }
 
   return (
     <>
       <nav className="navbar navbar-expand-lg bg-body-tertiary">
         <div className="container-fluid">
-          {/* Brand Logo */}
-          <Link className="navbar-brand" to="/">
-            Dental
-          </Link>
+          <Link className="navbar-brand" to="/">Dental</Link>
 
-          {/* Mobile toggle button */}
           <button
             className="navbar-toggler"
             type="button"
@@ -51,55 +55,40 @@ export function Nav() {
           {/* Navbar Links */}
           <div className="collapse navbar-collapse" id="navbarNav">
             <ul className="navbar-nav">
+              
               <li className="nav-item">
-                <Link className="nav-link" to="/">
-                  Home
-                </Link>
+                <Link className="nav-link" to="/">Home</Link>
               </li>
 
               <li className="nav-item">
-                <Link className="nav-link" to="/services">
-                  Services
-                </Link>
+                <Link className="nav-link" to="/services">Services</Link>
               </li>
 
               <li className="nav-item">
-                <Link className="nav-link" to="/appointment">
-                  Appointment
-                </Link>
+                <Link className="nav-link" to="/appointment">Appointment</Link>
               </li>
+
               {loggedIn && (
                 <li className="nav-item">
-                  <Link className="nav-link" to="/myappointments">
-                    My Appointments
-                  </Link>
+                  <Link className="nav-link" to="/myappointments">My Appointments</Link>
                 </li>
               )}
 
-              {/* Show LOGIN + SIGNUP if NOT logged in */}
               {!loggedIn && (
                 <>
                   <li className="nav-item">
-                    <Link className="nav-link" to="/login">
-                      Login
-                    </Link>
+                    <Link className="nav-link" to="/login">Login</Link>
                   </li>
 
                   <li className="nav-item">
-                    <Link className="nav-link" to="/signup">
-                      Signup
-                    </Link>
+                    <Link className="nav-link" to="/signup">Signup</Link>
                   </li>
                 </>
               )}
 
-              {/* Show LOGOUT if logged in */}
               {loggedIn && (
                 <li className="nav-item">
-                  <button
-                    onClick={handleLogout}
-                    className="btn btn-danger ms-3"
-                  >
+                  <button onClick={handleLogout} className="btn btn-danger ms-3">
                     Logout
                   </button>
                 </li>
@@ -107,19 +96,22 @@ export function Nav() {
             </ul>
           </div>
 
-          {/* Admin Link */}
-          <div>
-            <Link
-              to="/admin"
-              style={{
-                color: "black",
-                textDecoration: "none",
-                marginLeft: "20px",
-              }}
-            >
-              Admin
-            </Link>
-          </div>
+          {/* ADMIN LINK */}
+          {user?.role === "admin" && (
+            <div>
+              <Link
+                to="/admin"
+                style={{
+                  color: "black",
+                  textDecoration: "none",
+                  marginLeft: "20px",
+                  fontWeight: "bold",
+                }}
+              >
+                Admin
+              </Link>
+            </div>
+          )}
         </div>
       </nav>
     </>

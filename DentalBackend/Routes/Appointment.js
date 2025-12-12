@@ -17,7 +17,6 @@ const admin = (req, res, next) => {
 router.post(
   '/appointment',
   [auth],
-   // ⬅️ Only logged-in user
   [
     body("name").notEmpty().withMessage("Name is required"),
     body("phone").isLength({ min: 10, max: 10 }).withMessage("Enter valid phone number"),
@@ -26,8 +25,6 @@ router.post(
     body("time").notEmpty().withMessage("Time is required"),
   ],
   async (req, res) => {
-
-    // Validate Inputs
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -35,15 +32,14 @@ router.post(
 
     try {
       const appointment = new Appointment({
-  userId: req.user.id,       // ⭐ logged-in user ki appointment
-  name: req.body.name,
-  phone: req.body.phone,
-  email: req.body.email,
-  date: req.body.date,
-  time: req.body.time,
-  message: req.body.message
-});
-
+        userId: req.user.id, 
+        name: req.body.name,
+        phone: req.body.phone,
+        email: req.body.email,
+        date: req.body.date,
+        time: req.body.time,
+        message: req.body.message
+      });
 
       await appointment.save();
       res.status(201).json({ message: "Appointment Booked Successfully!" });
@@ -81,7 +77,6 @@ router.put("/accept/:id", auth, admin, async (req, res) => {
       return res.status(404).json({ message: "Appointment not found" });
     }
 
-    // Send Email
     await sendMail(
       appointment.email,
       "Appointment Accepted",
@@ -111,7 +106,6 @@ router.put("/decline/:id", auth, admin, async (req, res) => {
       return res.status(404).json({ message: "Appointment not found" });
     }
 
-    // Send Decline Email
     await sendMail(
       appointment.email,
       "Appointment Declined",
@@ -126,7 +120,25 @@ router.put("/decline/:id", auth, admin, async (req, res) => {
   }
 });
 
-//my appointments
+// ⭐ DELETE APPOINTMENT (Admin Only)
+router.delete("/delete/:id", auth, admin, async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const deleted = await Appointment.findByIdAndDelete(id);
+
+    if (!deleted) {
+      return res.status(404).json({ message: "Appointment not found" });
+    }
+
+    res.json({ message: "Appointment deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error while deleting appointment" });
+  }
+});
+
+// ⭐ MY APPOINTMENTS (Logged-in user)
 router.get("/myAppointments", auth, async (req, res) => {
   try {
     const apps = await Appointment.find({ userId: req.user.id });
