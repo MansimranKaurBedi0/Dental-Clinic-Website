@@ -9,54 +9,51 @@ export function Login() {
 
     const res = await fetch("http://localhost:3000/user/login", {
       method: "POST",
-      credentials: "include", // ⭐ COOKIE YAHAN SE SET HOGI
-      headers: {
-        "Content-Type": "application/json",
-      },
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
 
     const data = await res.json();
-    if (res.ok) {
-      alert("Login successful ✅");
-      console.log("User:", data.user);
-      // yahan tu navigate bhi kar sakti hai e.g. admin ya home
-    } else {
-      alert(data.msg || "Login failed");
+
+    if (!res.ok) {
+      alert(data.msg);
+      return;
     }
+
+    alert("Login Successful");
+
+    // 🔥 notify Navbar to refresh login state
+    localStorage.setItem("refreshNav", "true");
+
+    // redirect
+    window.location.href = "/";
   }
 
   return (
-    <div style={{ maxWidth: "400px", margin: "40px auto" }}>
+    <div style={{ marginTop: "100px", textAlign: "center" }}>
       <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <label className="form-label">Email</label>
-          <input
-            type="email"
-            className="form-control"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
+      <form
+        onSubmit={handleSubmit}
+        style={{ width: "300px", margin: "auto", marginTop: "20px" }}
+      >
+        <input
+          type="email"
+          placeholder="Email"
+          className="form-control mb-3"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
-        <div className="mb-3">
-          <label className="form-label">Password</label>
-          <input
-            type="password"
-            className="form-control"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
+        <input
+          type="password"
+          placeholder="Password"
+          className="form-control mb-3"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
 
-        <button
-          type="submit"
-          className="btn"
-          style={{ backgroundColor: "#b12d51", color: "white" }}
-        >
-          Login
-        </button>
+        <button className="btn btn-primary w-100">Login</button>
       </form>
     </div>
   );

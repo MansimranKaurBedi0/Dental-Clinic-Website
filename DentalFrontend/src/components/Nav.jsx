@@ -3,29 +3,48 @@ import { useEffect, useState } from "react";
 
 export function Nav() {
   const [loggedIn, setLoggedIn] = useState(false);
-  const [user, setUser] = useState(null); // store user data
+  const [user, setUser] = useState(null);
 
-  // Check login status on page load
+  // ---------------- CHECK LOGIN ----------------
   async function checkLogin() {
-    const res = await fetch("http://localhost:3000/user/check", {
-      credentials: "include",
-    });
-    const data = await res.json();
+    try {
+      const res = await fetch("http://localhost:3000/user/check", {
+        credentials: "include",
+      });
+      const data = await res.json();
 
-    setLoggedIn(data.loggedIn);
+      setLoggedIn(data.loggedIn);
 
-    if (data.loggedIn) {
-      setUser(data.user); // store full user {id, name, role}
-    } else {
-      setUser(null);
+      if (data.loggedIn) {
+        setUser(data.user);
+      } else {
+        setUser(null);
+      }
+    } catch (error) {
+      console.log("Login check failed");
     }
   }
 
+  // Run once on page load
   useEffect(() => {
     checkLogin();
   }, []);
 
-  // Logout handler
+  // ---------------- AUTO UPDATE NAV AFTER LOGIN ----------------
+  useEffect(() => {
+    function updateNav() {
+      if (localStorage.getItem("refreshNav") === "true") {
+        checkLogin(); // re-check login instantly
+        localStorage.removeItem("refreshNav");
+      }
+    }
+
+    window.addEventListener("storage", updateNav);
+
+    return () => window.removeEventListener("storage", updateNav);
+  }, []);
+
+  // ---------------- LOGOUT ----------------
   async function handleLogout() {
     await fetch("http://localhost:3000/user/logout", {
       method: "POST",
@@ -34,14 +53,19 @@ export function Nav() {
 
     setLoggedIn(false);
     setUser(null);
-    window.location.href = "/"; // reload UI
+
+    localStorage.setItem("refreshNav", "true"); // update nav instantly
+
+    window.location.href = "/";
   }
 
   return (
     <>
       <nav className="navbar navbar-expand-lg bg-body-tertiary">
         <div className="container-fluid">
-          <Link className="navbar-brand" to="/">Dental</Link>
+          <Link className="navbar-brand" to="/">
+            Dental
+          </Link>
 
           <button
             className="navbar-toggler"
@@ -52,10 +76,10 @@ export function Nav() {
             <span className="navbar-toggler-icon"></span>
           </button>
 
-          {/* Navbar Links */}
+          {/* NAV LINKS */}
           <div className="collapse navbar-collapse" id="navbarNav">
             <ul className="navbar-nav">
-              
+
               <li className="nav-item">
                 <Link className="nav-link" to="/">Home</Link>
               </li>
@@ -70,7 +94,9 @@ export function Nav() {
 
               {loggedIn && (
                 <li className="nav-item">
-                  <Link className="nav-link" to="/myappointments">My Appointments</Link>
+                  <Link className="nav-link" to="/myappointments">
+                    My Appointments
+                  </Link>
                 </li>
               )}
 
@@ -88,7 +114,10 @@ export function Nav() {
 
               {loggedIn && (
                 <li className="nav-item">
-                  <button onClick={handleLogout} className="btn btn-danger ms-3">
+                  <button
+                    onClick={handleLogout}
+                    className="btn btn-danger ms-3"
+                  >
                     Logout
                   </button>
                 </li>
@@ -96,7 +125,7 @@ export function Nav() {
             </ul>
           </div>
 
-          {/* ADMIN LINK */}
+          {/* ⭐ ADMIN BUTTON — SHOW ONLY IF ROLE = admin ⭐ */}
           {user?.role === "admin" && (
             <div>
               <Link
