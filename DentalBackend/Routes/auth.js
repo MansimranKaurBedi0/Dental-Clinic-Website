@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const router = express.Router();
 
+// ---------------- CHECK LOGIN STATUS ----------------
 router.get("/check", (req, res) => {
   const token = req.cookies.token;
   if (!token) return res.json({ loggedIn: false });
@@ -17,7 +18,7 @@ router.get("/check", (req, res) => {
 });
 
 
-//Signup
+// ---------------- SIGNUP ----------------
 router.post("/signup", async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -25,33 +26,40 @@ router.post("/signup", async (req, res) => {
     const exist = await User.findOne({ email });
     if (exist) return res.status(400).json({ msg: "User already exists" });
 
-
     const hashedPass = await bcrypt.hash(password, 10);
-
 
     const user = await User.create({
       name,
       email,
-      password: hashedPass
+      password: hashedPass,
+      role: "user" // default user
     });
 
- 
+    // Create JWT
     const token = jwt.sign(
-  { id: user._id, role: user.role },
-  process.env.JWT_SECRET,
-  { expiresIn: "1d" }
-);
+      { id: user._id, name: user.name, email: user.email, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
 
+    // Set cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false, 
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000
+    });
 
-  res.cookie("token", token, {
-  httpOnly: true,
-  secure: false,
-  sameSite: "lax",
-  maxAge: 86400000
-});
-
-
-    res.json({ msg: "Signup successful", user });
+    // Safe user object (NO PASSWORD)
+    res.json({
+      msg: "Signup successful",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
 
   } catch (err) {
     console.log(err);
@@ -60,74 +68,64 @@ router.post("/signup", async (req, res) => {
 });
 
 
-//login
+// ---------------- LOGIN ----------------
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // user check
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ msg: "User not found" });
 
-    // password compare
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(400).json({ msg: "Wrong password" });
 
-    // JWT
-   const token = jwt.sign(
-  { id: user._id, role: user.role },
-  process.env.JWT_SECRET,
-  { expiresIn: "1d" }
-);
+    // Create JWT
+    const token = jwt.sign(
+      { id: user._id, name: user.name, email: user.email, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
 
-
-    // Cookie
+    // Set cookie
     res.cookie("token", token, {
       httpOnly: true,
       secure: false,
-sameSite: "lax",
-
+      sameSite: "lax",
       maxAge: 24 * 60 * 60 * 1000
     });
 
-    res.json({ msg: "Login successful", user });
+    // Return safe user object
+    res.json({
+      msg: "Login successful",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
 
   } catch (err) {
+    console.log(err);
     res.status(500).json({ msg: "Server error" });
   }
 });
 
 
 
-
-//logout
+// ---------------- LOGOUT ----------------
 router.post("/logout", (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
-    secure: false,   // SAME as login/signup
-    sameSite: "lax", // SAME as login/signup
+    secure: false,
+    sameSite: "lax"
   });
+
   res.json({ msg: "Logged out successfully" });
 });
 
 
+// ---------------- CREATE DEFAULT ADMIN ----------------
 
-//admin
-router.get("/create-admin", async (req, res) => {
-  try {
-    const hashedPass = await bcrypt.hash("admin123", 10);
 
-    const admin = await User.create({
-      name: "Admin User",
-      email: "admin@gmail.com",
-      password: hashedPass,
-      role: "admin"
-    });
-
-    res.json({ msg: "Admin created", admin });
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ msg: "Error creating admin" });
-  }
-});
-module.exports=router;
+module.exports = router;

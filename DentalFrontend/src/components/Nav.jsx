@@ -3,42 +3,70 @@ import { useEffect, useState } from "react";
 
 export function Nav() {
   const [loggedIn, setLoggedIn] = useState(false);
+  const [user, setUser] = useState(null);
 
-  // Check login status on page load
+  // ---------------- CHECK LOGIN ----------------
   async function checkLogin() {
-    const res = await fetch("http://localhost:3000/user/check", {
-      credentials: "include",
-    });
-    const data = await res.json();
-    setLoggedIn(data.loggedIn);
+    try {
+      const res = await fetch("http://localhost:3000/user/check", {
+        credentials: "include",
+      });
+      const data = await res.json();
+
+      setLoggedIn(data.loggedIn);
+
+      if (data.loggedIn) {
+        setUser(data.user);
+      } else {
+        setUser(null);
+      }
+    } catch (error) {
+      console.log("Login check failed");
+    }
   }
 
+  // Run once on page load
   useEffect(() => {
     checkLogin();
   }, []);
 
-  // Logout handler
+  // ---------------- AUTO UPDATE NAV AFTER LOGIN ----------------
+  useEffect(() => {
+    function updateNav() {
+      if (localStorage.getItem("refreshNav") === "true") {
+        checkLogin(); // re-check login instantly
+        localStorage.removeItem("refreshNav");
+      }
+    }
+
+    window.addEventListener("storage", updateNav);
+
+    return () => window.removeEventListener("storage", updateNav);
+  }, []);
+
+  // ---------------- LOGOUT ----------------
   async function handleLogout() {
-    const res = await fetch("http://localhost:3000/user/logout", {
+    await fetch("http://localhost:3000/user/logout", {
       method: "POST",
       credentials: "include",
     });
 
-    const data = await res.json();
-    alert(data.msg);
     setLoggedIn(false);
+    setUser(null);
+
+    localStorage.setItem("refreshNav", "true"); // update nav instantly
+
+    window.location.href = "/";
   }
 
   return (
     <>
       <nav className="navbar navbar-expand-lg bg-body-tertiary">
         <div className="container-fluid">
-          {/* Brand Logo */}
           <Link className="navbar-brand" to="/">
             Dental
           </Link>
 
-          {/* Mobile toggle button */}
           <button
             className="navbar-toggler"
             type="button"
@@ -48,26 +76,22 @@ export function Nav() {
             <span className="navbar-toggler-icon"></span>
           </button>
 
-          {/* Navbar Links */}
+          {/* NAV LINKS */}
           <div className="collapse navbar-collapse" id="navbarNav">
             <ul className="navbar-nav">
+
               <li className="nav-item">
-                <Link className="nav-link" to="/">
-                  Home
-                </Link>
+                <Link className="nav-link" to="/">Home</Link>
               </li>
 
               <li className="nav-item">
-                <Link className="nav-link" to="/services">
-                  Services
-                </Link>
+                <Link className="nav-link" to="/services">Services</Link>
               </li>
 
               <li className="nav-item">
-                <Link className="nav-link" to="/appointment">
-                  Appointment
-                </Link>
+                <Link className="nav-link" to="/appointment">Appointment</Link>
               </li>
+
               {loggedIn && (
                 <li className="nav-item">
                   <Link className="nav-link" to="/myappointments">
@@ -76,24 +100,18 @@ export function Nav() {
                 </li>
               )}
 
-              {/* Show LOGIN + SIGNUP if NOT logged in */}
               {!loggedIn && (
                 <>
                   <li className="nav-item">
-                    <Link className="nav-link" to="/login">
-                      Login
-                    </Link>
+                    <Link className="nav-link" to="/login">Login</Link>
                   </li>
 
                   <li className="nav-item">
-                    <Link className="nav-link" to="/signup">
-                      Signup
-                    </Link>
+                    <Link className="nav-link" to="/signup">Signup</Link>
                   </li>
                 </>
               )}
 
-              {/* Show LOGOUT if logged in */}
               {loggedIn && (
                 <li className="nav-item">
                   <button
@@ -107,19 +125,22 @@ export function Nav() {
             </ul>
           </div>
 
-          {/* Admin Link */}
-          <div>
-            <Link
-              to="/admin"
-              style={{
-                color: "black",
-                textDecoration: "none",
-                marginLeft: "20px",
-              }}
-            >
-              Admin
-            </Link>
-          </div>
+          {/* ⭐ ADMIN BUTTON — SHOW ONLY IF ROLE = admin ⭐ */}
+          {user?.role === "admin" && (
+            <div>
+              <Link
+                to="/admin"
+                style={{
+                  color: "black",
+                  textDecoration: "none",
+                  marginLeft: "20px",
+                  fontWeight: "bold",
+                }}
+              >
+                Admin
+              </Link>
+            </div>
+          )}
         </div>
       </nav>
     </>
