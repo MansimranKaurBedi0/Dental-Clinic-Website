@@ -1,9 +1,13 @@
+
+import { API_URL } from "../config";
+import toast from 'react-hot-toast';
+
 export function AdminCards(props) {
 
   // ⭐ ACCEPT Appointment
   async function handleAccept() {
     const res = await fetch(
-      `http://localhost:3000/appointment/accept/${props._id}`,
+      `${API_URL}/appointment/accept/${props._id}`,
       {
         method: "PUT",
         credentials: "include",
@@ -12,7 +16,7 @@ export function AdminCards(props) {
     );
 
     if (res.ok) {
-      alert("Appointment Accepted ✅");
+      toast.success("Appointment Accepted ✅");
       props.refresh(); // Refresh UI
     }
   }
@@ -20,7 +24,7 @@ export function AdminCards(props) {
   // ⭐ DECLINE Appointment
   async function handleDecline() {
     const res = await fetch(
-      `http://localhost:3000/appointment/decline/${props._id}`,
+      `${API_URL}/appointment/decline/${props._id}`,
       {
         method: "PUT",
         credentials: "include",
@@ -29,20 +33,44 @@ export function AdminCards(props) {
     );
 
     if (res.ok) {
-      alert("Appointment Declined ❌");
+      toast.success("Appointment Declined ❌");
       props.refresh(); // Refresh UI
     }
   }
 
   // ⭐ DELETE Appointment
-  async function handleDelete() {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this appointment?"
-    );
-    if (!confirmDelete) return;
+  function handleDelete() {
+    toast((t) => (
+      <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+        <p style={{ margin: 0, fontWeight: "500" }}>Delete this appointment?</p>
+        <div style={{ display: "flex", gap: "8px" }}>
+          <button
+            onClick={() => {
+              toast.dismiss(t.id);
+              performDelete();
+            }}
+            style={{
+              padding: "6px 12px", background: "#ef4444", color: "white", border: "none", borderRadius: "4px", cursor: "pointer"
+            }}
+          >
+            Yes, Delete
+          </button>
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            style={{
+              padding: "6px 12px", background: "#e5e7eb", color: "#374151", border: "none", borderRadius: "4px", cursor: "pointer"
+            }}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    ));
+  }
 
+  async function performDelete() {
     const res = await fetch(
-      `http://localhost:3000/appointment/delete/${props._id}`,
+      `${API_URL}/appointment/delete/${props._id}`,
       {
         method: "DELETE",
         credentials: "include",
@@ -51,7 +79,7 @@ export function AdminCards(props) {
     );
 
     if (res.ok) {
-      alert("Appointment Deleted 🗑️");
+      toast.success("Appointment Deleted 🗑️");
       props.refresh(); // Refresh after deletion
     }
   }

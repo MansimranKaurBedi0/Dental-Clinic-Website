@@ -1,67 +1,65 @@
-import { ServiceCard } from "./ServiceCard";
+import { Link, useNavigate } from "react-router-dom";
+import { FaTooth, FaTools, FaMagic, FaUserMd, FaSmileBeam, FaProcedures } from "react-icons/fa";
 
 export function Service() {
-  return (
-    <>
-      <h1 style={{ marginLeft: "35%", marginTop: "70px", fontSize: "70px" }}>
-        Our Services
-      </h1>
-      <div
-        className="container"
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "30px",
-          marginLeft: "15%",
-          marginTop: "5%",
+  const navigate = useNavigate();
 
-          // backgroundImage:
-          //   'url("https://i.pinimg.com/736x/0e/e6/33/0ee6333097bc3ff577ac21fd385a4b27.jpg")',
-          // backgroundSize: "cover", // image cover kare pura div
-          // backgroundPosition: "center",
-        }}
-      >
-        <div style={{ display: "flex", gap: "50px" }}>
-          <ServiceCard
-            img={
-              "https://i.pinimg.com/736x/75/ec/d3/75ecd36bdb68fe29ec68c220438f3c48.jpg"
-            }
-            title="Braces"
-          ></ServiceCard>
-          <ServiceCard
-            img={
-              "https://i.pinimg.com/736x/3f/ce/c9/3fcec957e4578b96aff1e64f24b07eef.jpg"
-            }
-            title="Filling"
-          ></ServiceCard>
-          <ServiceCard
-            img={
-              "https://i.pinimg.com/736x/44/a8/a1/44a8a1661595eb9c3d635cbe298cdb10.jpg"
-            }
-            title="Scaling"
-          ></ServiceCard>
-        </div>
-        <div style={{ display: "flex", gap: "50px" }}>
-          <ServiceCard
-            img={
-              "https://i.pinimg.com/1200x/f6/bf/3f/f6bf3f7e8dd00246b0e9c525f674ae5e.jpg"
-            }
-            title="Smile Designing"
-          ></ServiceCard>
-          <ServiceCard
-            img={
-              "https://i.pinimg.com/736x/a0/8a/2c/a08a2ce0d2e8dbc359748733e54fb0f3.jpg"
-            }
-            title="Aligners"
-          ></ServiceCard>
-          <ServiceCard
-            img={
-              "https://i.pinimg.com/736x/2d/d3/f8/2dd3f855aa443214f3009a1b7d794d3a.jpg"
-            }
-            title="Extraction"
-          ></ServiceCard>
-        </div>
+  const services = [
+    { name: "General Consultation", icon: <FaUserMd size={40} />, desc: "Complete oral health checkup and diagnosis.", color: "#0072ff" },
+    { name: "Teeth Whitening", icon: <FaMagic size={40} />, desc: "Brighten your smile with simple, safe treatments.", color: "#43e97b" },
+    { name: "Root Canal Treatment", icon: <FaTools size={40} />, desc: "Save your natural teeth with painless therapy.", color: "#ff608c" },
+    { name: "Dental Implants", icon: <FaTooth size={40} />, desc: "Permanent, natural-looking replacement for missing teeth.", color: "#f59e0b" },
+    { name: "Orthodontics (Braces)", icon: <FaSmileBeam size={40} />, desc: "Straighten your teeth for a perfect smile.", color: "#9333ea" },
+    { name: "Oral Surgery", icon: <FaProcedures size={40} />, desc: "Expert surgical care for complex dental issues.", color: "#ef4444" },
+  ];
+
+  const handleBook = (serviceName) => {
+    navigate("/appointment", { state: { service: serviceName } });
+  };
+
+  return (
+    <div className="container animate-fade-in" style={{ padding: "60px 20px" }}>
+      <div style={{ textAlign: "center", marginBottom: "60px" }}>
+        <h1 style={{ firstName: "3.5rem", marginBottom: "16px", background: "var(--primary-gradient)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+          Our Premium Services
+        </h1>
+        <p style={{ fontSize: "1.2rem", color: "var(--text-muted)", maxWidth: "700px", margin: "0 auto" }}>
+          Choosing the right treatment is the first step to your perfect smile. Select a service below to book your appointment instantly.
+        </p>
       </div>
-    </>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "32px" }}>
+        {services.map((s) => (
+          <div
+            key={s.name}
+            className="glass-card service-hover"
+            onClick={() => handleBook(s.name)}
+            style={{
+              padding: "32px",
+              cursor: "pointer",
+              transition: "transform 0.3s ease, box-shadow 0.3s ease",
+              borderTop: `4px solid ${s.color}`
+            }}
+          >
+            <div style={{
+              width: "80px", height: "80px",
+              background: `${s.color}20`,
+              borderRadius: "20px",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              marginBottom: "24px", color: s.color
+            }}>
+              {s.icon}
+            </div>
+            <h3 style={{ marginBottom: "12px", fontSize: "1.5rem" }}>{s.name}</h3>
+            <p style={{ color: "var(--text-muted)", marginBottom: "24px", lineHeight: "1.6" }}>{s.desc}</p>
+            <button className="btn-secondary" style={{ width: "100%", borderColor: s.color, color: s.color }}>
+              Book Now
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
+
+// Ensure you add .service-hover:hover { transform: translateY(-10px); } to App.css or here
