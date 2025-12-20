@@ -144,7 +144,7 @@ router.post("/logout", (req, res) => {
 
 // ---------------- FORGOT PASSWORD ----------------
 const crypto = require("crypto");
-const sendMail = require("../utils/sendMail");
+const { sendEmail } = require("../services/emailService");
 
 router.post("/forgot-password", async (req, res) => {
   try {
@@ -198,7 +198,11 @@ Dental Clinic Support Team
     `;
 
     try {
-      await sendMail(user.email, "🔐 Reset Your Password – Dental Clinic Account", message);
+      await sendEmail({
+        to: user.email,
+        subject: "🔐 Reset Your Password – Dental Clinic Account",
+        text: message
+      });
       res.json({ msg: "If an account exists, a reset link has been sent to your email." });
     } catch (err) {
       user.resetPasswordToken = undefined;
