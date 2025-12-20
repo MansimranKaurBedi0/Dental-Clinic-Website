@@ -1,59 +1,24 @@
+const { sendEmail } = require('./services/emailService');
 require('dotenv').config();
-const nodemailer = require('nodemailer');
 
-async function debugEmail() {
-    console.log("--- Email Debugger ---");
+async function runDebug() {
+    console.log("--- Debugging Email Service ---");
+    console.log("Using credentials from .env:");
+    console.log("User:", process.env.EMAIL_USER);
+    console.log("Pass:", process.env.EMAIL_PASS ? "********" : "Missing");
 
-    const user = process.env.EMAIL_USER;
-    const pass = process.env.EMAIL_PASS;
-
-    if (!user || !pass) {
-        console.error("❌ MISSING CREDENTIALS in .env");
-        console.error("EMAIL_USER:", user ? "Set" : "Missing");
-        console.error("EMAIL_PASS:", pass ? "Set" : "Missing");
-        return;
-    }
-
-    console.log(`Checking credentials for: ${user}`);
-    console.log("Password length:", pass.length);
-
-    const transporter = nodemailer.createTransport({
-        host: "smtp.gmail.com",
-        port: 465,
-        secure: true,
-        auth: {
-            user: user,
-            pass: pass,
-        },
-        debug: true, // Enable debug output
+    const result = await sendEmail({
+        to: process.env.EMAIL_USER, // Send to self
+        subject: "Debug Test from New Service",
+        text: "If you see this, the new emailService is working correctly!",
     });
 
-    try {
-        console.log("Attempting to verify connection...");
-        await transporter.verify();
-        console.log("✅ Connection Successful! SMTP server is ready.");
-
-        console.log("Attempting to send test email...");
-        const info = await transporter.sendMail({
-            from: user,
-            to: user, // Send to self
-            subject: "Debug Test Email",
-            text: "If you receive this, the email service is working correctly!",
-        });
-
-        console.log("✅ Email sent successfully!");
-        console.log("Message ID:", info.messageId);
-
-    } catch (error) {
-        console.error("❌ FAILED:");
-        console.error(error);
-
-        if (error.responseCode === 535) {
-            console.log("\n💡 POSSIBLE FIX: Invalid Username or Password.");
-            console.log("   - Make sure you are using an APP PASSWORD, not your login password.");
-            console.log("   - Go to Google Account > Security > 2-Step Verification > App Passwords.");
-        }
+    if (result.success) {
+        console.log("✅ SUCCESS: Email sent!");
+    } else {
+        console.log("❌ FAILURE: Could not send email.");
+        console.log("Error details:", result.error);
     }
 }
 
-debugEmail();
+runDebug();
